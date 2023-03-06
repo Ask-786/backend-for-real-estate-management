@@ -11,7 +11,6 @@ export class PropertyService {
 
   async getProperty(_id: string): Promise<PropertyDocument> {
     const property = await this.propertyRepository.findOne({ _id });
-    console.log(property);
     if (property !== null) {
       return property;
     }

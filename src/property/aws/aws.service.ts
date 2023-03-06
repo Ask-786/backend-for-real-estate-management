@@ -1,28 +1,29 @@
 import { Injectable } from '@nestjs/common';
-import { S3 } from 'aws-sdk';
+import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
+import { PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
 import * as crypto from 'crypto';
 
 @Injectable()
 export class AwsService {
   bucketName = process.env.AWS_BUCKET_NAME;
-  secretAccessKey = process.env.AWS_SECRET_ACCESS_KEY;
-  accessKeyId = process.env.AWS_ACCESS_KEY;
   region = process.env.AWS_REGION;
-  s3: S3;
+  s3Client: S3Client;
+  command: PutObjectCommand;
 
   constructor() {
-    this.s3 = new S3({
-      secretAccessKey: this.secretAccessKey,
-      accessKeyId: this.accessKeyId,
+    this.s3Client = new S3Client({
       region: this.region,
-      signatureVersion: 'v4',
+    });
+    this.command = new PutObjectCommand({
+      Bucket: this.bucketName,
+      Key: crypto.randomBytes(16).toString('hex'),
     });
   }
 
   async generateUplaodUrl() {
-    const imageName = crypto.randomBytes(16).toString('hex');
-    const params = { Bucket: this.bucketName, Key: imageName, Expires: 60 };
-    const uploadUrl = await this.s3.getSignedUrlPromise('putObject', params);
+    const uploadUrl = await getSignedUrl(this.s3Client, this.command, {
+      expiresIn: 60,
+    });
     return { uploadUrl };
   }
 

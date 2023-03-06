@@ -55,7 +55,6 @@ export class PropertyController {
     @Request() req,
   ) {
     const splittedTags = tags.trim().split(',');
-    console.log(images);
     return this.propertyService.createProperty({
       title,
       price,
